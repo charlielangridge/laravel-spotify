@@ -1,8 +1,9 @@
 <?php
 
-namespace Aerni\Spotify\Tests;
+namespace Aerni\Spotify\Tests\Unit;
 
 use Aerni\Spotify\PendingRequest;
+use Aerni\Spotify\Tests\TestCase;
 use Exception;
 
 class PendingRequestTest extends TestCase

@@ -1,12 +1,43 @@
 <?php
 
-namespace Aerni\Spotify\Tests;
+namespace Aerni\Spotify\Tests\Unit;
 
 use Aerni\Spotify\Facades\Spotify;
+use Aerni\Spotify\Tests\TestCase;
 
 class PlaylistsTest extends TestCase
 {
     private $playlistId = '1NLLcKrGXII2F2oRKZVatw';
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->mockSpotifyApi([
+            '/playlists/'.$this->playlistId.'/images/' => [[
+                'url' => 'https://i.scdn.co/image/playlist-cover',
+                'height' => null,
+                'width' => null,
+            ]],
+            '/playlists/'.$this->playlistId.'/tracks/' => function (string $url): array {
+                $limit = (int) $this->queryParam($url, 'limit', 20);
+                $offset = (int) $this->queryParam($url, 'offset', 0);
+
+                return [
+                    'href' => 'https://api.spotify.com/v1/playlists/'.$this->playlistId.'/tracks',
+                    'items' => [['track' => ['id' => 'track-1', 'name' => 'Track 1', 'type' => 'track']]],
+                    'limit' => $limit,
+                    'offset' => $offset,
+                    'total' => 1,
+                ];
+            },
+            '/playlists/'.$this->playlistId.'?' => [
+                'id' => $this->playlistId,
+                'name' => 'Mock Playlist',
+                'type' => 'playlist',
+            ],
+        ]);
+    }
 
     public function test_can_get_playlist_cover_image(): void
     {

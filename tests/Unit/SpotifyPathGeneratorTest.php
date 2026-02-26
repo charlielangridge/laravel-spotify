@@ -1,8 +1,9 @@
 <?php
 
-namespace Aerni\Spotify\Tests;
+namespace Aerni\Spotify\Tests\Unit;
 
 use Aerni\Spotify\SpotifyPathGenerator;
+use Aerni\Spotify\Tests\TestCase;
 
 class SpotifyPathGeneratorTest extends TestCase
 {

@@ -1,12 +1,22 @@
 <?php
 
-namespace Aerni\Spotify\Tests;
+namespace Aerni\Spotify\Tests\Unit;
 
 use Aerni\Spotify\Facades\Spotify;
+use Aerni\Spotify\Tests\TestCase;
 use Exception;
 
 class SearchTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->mockSpotifyApi([
+            '/search/' => fn (string $url): array => $this->mockedSearchResponse($url),
+        ]);
+    }
+
     public function test_can_search_for_items_and_pass_types_as_an_array(): void
     {
         $query = 'Tremble';
@@ -38,7 +48,7 @@ class SearchTest extends TestCase
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Please provide a string with comma-separated values or an array as the argument to the [type] parameter.');
 
-        $items = Spotify::searchItems($query, true)->get();
+        Spotify::searchItems($query, true)->get();
     }
 
     public function test_can_search_for_albums(): void
@@ -111,5 +121,41 @@ class SearchTest extends TestCase
         $this->assertStringContainsStringIgnoringCase($query, $trackName);
         $this->assertCount(15, $tracks['tracks']['items']);
         $this->assertEquals(10, $tracks['tracks']['offset']);
+    }
+
+    private function mockedSearchResponse(string $url): array
+    {
+        $query = (string) $this->queryParam($url, 'q', 'Mock Query');
+        $typeParam = (string) $this->queryParam($url, 'type', '');
+        $limit = (int) $this->queryParam($url, 'limit', 20);
+        $offset = (int) $this->queryParam($url, 'offset', 0);
+        $types = array_filter(explode(',', $typeParam));
+
+        $response = [];
+
+        foreach ($types as $type) {
+            $key = $type.'s';
+
+            $response[$key] = [
+                'href' => 'https://api.spotify.com/v1/search',
+                'items' => $this->searchItemsForType($type, $query, $limit),
+                'limit' => $limit,
+                'offset' => $offset,
+                'total' => $limit,
+            ];
+        }
+
+        return $response;
+    }
+
+    private function searchItemsForType(string $type, string $query, int $limit): array
+    {
+        return array_map(function (int $index) use ($type, $query): array {
+            return [
+                'id' => $type.'-'.$index,
+                'name' => $query.' '.$index,
+                'type' => $type,
+            ];
+        }, range(1, $limit));
     }
 }

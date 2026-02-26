@@ -1,8 +1,9 @@
 <?php
 
-namespace Aerni\Spotify\Tests;
+namespace Aerni\Spotify\Tests\Unit;
 
 use Aerni\Spotify\SpotifyAuth;
+use Aerni\Spotify\Tests\TestCase;
 
 class SpotifyAuthTest extends TestCase
 {
@@ -12,6 +13,6 @@ class SpotifyAuthTest extends TestCase
 
         $accessToken = $auth->getAccessToken();
 
-        $this->assertIsString($accessToken);
+        $this->assertEquals('mocked-access-token', $accessToken);
     }
 }
