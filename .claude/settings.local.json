@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"C:\\\\Users\\\\charl\\\\PhpstormProjects\\\\laravel-spotify\" && vendor/bin/phpunit 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\charl\\\\PhpstormProjects\\\\laravel-spotify\" && \"/c/Users/charl/.config/herd/bin/php84\" vendor/bin/phpunit 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\charl\\\\PhpstormProjects\\\\laravel-spotify\" && \"/c/Users/charl/.config/herd/bin/php84/php.exe\" vendor/bin/phpunit 2>&1)"
+    ]
+  }
+}

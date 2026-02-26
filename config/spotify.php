@@ -25,7 +25,22 @@ return [
     'auth' => [
         'client_id' => env('SPOTIFY_CLIENT_ID'),
         'client_secret' => env('SPOTIFY_CLIENT_SECRET'),
+        'redirect_uri' => env('SPOTIFY_REDIRECT_URI'),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Token Repository
+    |--------------------------------------------------------------------------
+    |
+    | The token repository is used to store OAuth tokens for the Authorization
+    | Code Flow. The default DatabaseTokenRepository persists tokens across
+    | server restarts. Switch to CacheTokenRepository if you prefer not to
+    | run a migration (note: cache-based tokens are lost on restart).
+    |
+    */
+
+    'token_repository' => \Aerni\Spotify\Repositories\DatabaseTokenRepository::class,
 
     /*
     |--------------------------------------------------------------------------

@@ -6,9 +6,22 @@ class Spotify
 {
     protected $defaultConfig;
 
+    protected ?string $accessToken = null;
+
     public function __construct(array $defaultConfig)
     {
         $this->defaultConfig = $defaultConfig;
+    }
+
+    /**
+     * Set a user access token for Authorization Code Flow requests.
+     */
+    public function withToken(string $accessToken): self
+    {
+        $clone = clone $this;
+        $clone->accessToken = $accessToken;
+
+        return $clone;
     }
 
     /**
@@ -22,7 +35,7 @@ class Spotify
             'market' => $this->defaultConfig['market'],
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -38,7 +51,7 @@ class Spotify
             'market' => $this->defaultConfig['market'],
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -55,7 +68,7 @@ class Spotify
             'market' => $this->defaultConfig['market'],
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -65,7 +78,7 @@ class Spotify
     {
         $endpoint = '/artists/'.$id;
 
-        return new PendingRequest($endpoint);
+        return new PendingRequest($endpoint, [], $this->accessToken);
     }
 
     /**
@@ -82,7 +95,7 @@ class Spotify
             'offset' => null,
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -96,7 +109,7 @@ class Spotify
             'country' => $this->defaultConfig['country'],
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -112,7 +125,7 @@ class Spotify
             'ids' => Validator::validateArgument('ids', $ids),
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -127,7 +140,7 @@ class Spotify
             'locale' => $this->defaultConfig['locale'],
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -144,7 +157,7 @@ class Spotify
             'offset' => null,
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -158,7 +171,7 @@ class Spotify
             'market' => $this->defaultConfig['market'],
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -175,7 +188,7 @@ class Spotify
             'market' => $this->defaultConfig['market'],
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -191,7 +204,7 @@ class Spotify
             'offset' => null,
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -201,7 +214,7 @@ class Spotify
     {
         $endpoint = '/playlists/'.$id.'/images/';
 
-        return new PendingRequest($endpoint);
+        return new PendingRequest($endpoint, [], $this->accessToken);
     }
 
     /**
@@ -216,7 +229,7 @@ class Spotify
             'market' => $this->defaultConfig['market'],
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -233,7 +246,7 @@ class Spotify
             'market' => $this->defaultConfig['market'],
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -254,7 +267,7 @@ class Spotify
             'include_external' => null,
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -273,7 +286,7 @@ class Spotify
             'include_external' => null,
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -292,7 +305,7 @@ class Spotify
             'include_external' => null,
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -311,7 +324,7 @@ class Spotify
             'include_external' => null,
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -330,7 +343,7 @@ class Spotify
             'include_external' => null,
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -349,7 +362,7 @@ class Spotify
             'include_external' => null,
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -368,7 +381,7 @@ class Spotify
             'include_external' => null,
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -382,7 +395,7 @@ class Spotify
             'market' => $this->defaultConfig['market'],
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -399,7 +412,7 @@ class Spotify
             'market' => $this->defaultConfig['market'],
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -415,7 +428,7 @@ class Spotify
             'market' => $this->defaultConfig['market'],
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -432,7 +445,7 @@ class Spotify
             'market' => $this->defaultConfig['market'],
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -446,7 +459,7 @@ class Spotify
             'market' => $this->defaultConfig['market'],
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 
     /**
@@ -456,7 +469,7 @@ class Spotify
     {
         $endpoint = '/users/'.$id;
 
-        return new PendingRequest($endpoint);
+        return new PendingRequest($endpoint, [], $this->accessToken);
     }
 
     /**
@@ -471,6 +484,6 @@ class Spotify
             'offset' => null,
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams);
+        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
     }
 }

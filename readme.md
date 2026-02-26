@@ -21,6 +21,7 @@
 </p>
 <p align="center">
     <a href="#installation">Installation</a> •
+    <a href="#authorization-code-flow">Authorization Code Flow</a> •
     <a href="#usage-example">Usage Example</a> •
     <a href="#optional-parameters">Optional Parameters</a> •
     <a href="#spotify-api-reference">Spotify API Reference</a> •
@@ -31,7 +32,7 @@
 ## Introduction
 Spotify for Laravel makes working with the Spotify Web API a breeze. It provides straight forward methods for each endpoint and a fluent interface for optional parameters.
 
-The package supports all Spotify Web API endpoints that are accessible with the [Client Credentials Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#client-credentials-flow).
+The package supports all Spotify Web API endpoints accessible with the [Client Credentials Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#client-credentials-flow) (public data) and the [Authorization Code Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow) (user-specific data such as saved tracks, private playlists, and user profile).
 
 ## Installation
 Install the package using Composer. The package will automatically register itself.
@@ -56,14 +57,28 @@ return [
     | Authentication
     |--------------------------------------------------------------------------
     |
-    | The Client ID and Client Secret of your Spotify App.
+    | The Client ID, Client Secret, and Redirect URI of your Spotify App.
     |
     */
 
     'auth' => [
-        'client_id' => env('SPOTIFY_CLIENT_ID'),
+        'client_id'     => env('SPOTIFY_CLIENT_ID'),
         'client_secret' => env('SPOTIFY_CLIENT_SECRET'),
+        'redirect_uri'  => env('SPOTIFY_REDIRECT_URI'),  // Required for Authorization Code Flow
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Token Repository
+    |--------------------------------------------------------------------------
+    |
+    | Used by the Authorization Code Flow to store user tokens. The default
+    | DatabaseTokenRepository persists tokens across server restarts.
+    | Switch to CacheTokenRepository if you prefer not to run a migration.
+    |
+    */
+
+    'token_repository' => \Aerni\Spotify\Repositories\DatabaseTokenRepository::class,
 
     /*
     |--------------------------------------------------------------------------
@@ -89,7 +104,98 @@ Set the `Client ID` and `Client Secret` of your [Spotify App](https://developer.
 ```env
 SPOTIFY_CLIENT_ID=********************************
 SPOTIFY_CLIENT_SECRET=********************************
+SPOTIFY_REDIRECT_URI=https://your-app.com/spotify/callback
 ```
+
+## Authorization Code Flow
+
+### Overview
+
+Use the Authorization Code Flow when your app needs access to user-specific data — saved tracks, private playlists, the current user's profile, etc. Unlike the Client Credentials Flow (server-to-server only), this flow authenticates on behalf of a real Spotify user.
+
+### Configuration
+
+**1. Run the migration** to create the `spotify_tokens` table:
+
+```bash
+php artisan vendor:publish --provider="Aerni\Spotify\SpotifyServiceProvider" --tag=migrations
+php artisan migrate
+```
+
+**2. Set your redirect URI** in `.env`:
+
+```env
+SPOTIFY_REDIRECT_URI=https://your-app.com/spotify/callback
+```
+
+**3. Register the redirect URI** in your [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) under your app's settings.
+
+### Step 1: Redirect the User
+
+```php
+use Aerni\Spotify\Facades\SpotifyAuthorizationCode;
+use Illuminate\Support\Str;
+
+$state = Str::random(16);
+session(['spotify_state' => $state]);
+
+return redirect(SpotifyAuthorizationCode::getAuthorizationUrl(
+    scopes: ['user-read-email', 'playlist-read-private'],
+    state: $state,
+));
+```
+
+### Step 2: Handle the Callback
+
+```php
+use Aerni\Spotify\Facades\SpotifyAuthorizationCode;
+
+// Validate state to prevent CSRF
+abort_unless(request('state') === session('spotify_state'), 403);
+
+// Exchange the code for tokens — stored automatically in the token repository
+SpotifyAuthorizationCode::exchangeCodeForTokens(auth()->id(), request('code'));
+```
+
+### Step 3: Make User-Authenticated API Calls
+
+```php
+use Aerni\Spotify\Facades\Spotify;
+use Aerni\Spotify\Facades\SpotifyAuthorizationCode;
+
+// Retrieves a valid token, refreshing automatically if expired
+$token = SpotifyAuthorizationCode::getAccessTokenForUser(auth()->id());
+
+$results = Spotify::withToken($token)->searchTracks('Adele')->limit(10)->get();
+```
+
+### Logout / Token Revocation
+
+```php
+SpotifyAuthorizationCode::forgetTokens(auth()->id());
+```
+
+### Token Management Reference
+
+| Method | Description |
+|--------|-------------|
+| `getAuthorizationUrl(array $scopes, ?string $state)` | Generate the Spotify login URL to redirect the user to |
+| `exchangeCodeForTokens($userId, string $code)` | Exchange the callback code for tokens; stores them automatically |
+| `getAccessTokenForUser($userId)` | Return a valid access token, auto-refreshing if expired |
+| `refreshAccessToken($userId)` | Manually refresh the access token using the stored refresh token |
+| `forgetTokens($userId)` | Delete stored tokens for the user (logout) |
+
+### Swapping the Token Repository
+
+By default, tokens are stored in a database table (`spotify_tokens`) and survive server restarts. If you prefer not to run a migration, switch to the cache-based repository in `config/spotify.php`:
+
+```php
+'token_repository' => \Aerni\Spotify\Repositories\CacheTokenRepository::class,
+```
+
+> **Note:** The `CacheTokenRepository` is not durable — tokens are lost when the cache is cleared or the server restarts, requiring users to re-authenticate.
+
+---
 
 ## Usage Example
 Import the package at the top of your file. All of the following examples use the [Facade](https://laravel.com/docs/master/facades).

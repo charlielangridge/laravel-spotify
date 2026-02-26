@@ -12,10 +12,13 @@ class PendingRequest
 
     public $requestedParams;
 
-    public function __construct(string $endpoint, array $acceptedParams = [])
+    public ?string $accessToken;
+
+    public function __construct(string $endpoint, array $acceptedParams = [], ?string $accessToken = null)
     {
         $this->endpoint = $endpoint;
         $this->acceptedParams = $acceptedParams;
+        $this->accessToken = $accessToken;
     }
 
     /**
