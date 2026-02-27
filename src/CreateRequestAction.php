@@ -25,7 +25,12 @@ class CreateRequestAction
             ? new SpotifyRequest($pendingRequest->accessToken)
             : resolve(SpotifyRequest::class);
 
-        $response = $spotifyRequest->get($endpoint, $finalParams);
+        $response = match ($pendingRequest->method) {
+            'POST'   => $spotifyRequest->post($endpoint, $pendingRequest->body),
+            'PUT'    => $spotifyRequest->put($endpoint, $pendingRequest->body),
+            'DELETE' => $spotifyRequest->delete($endpoint, $pendingRequest->body),
+            default  => $spotifyRequest->get($endpoint, $finalParams),
+        };
 
         if ($responseArrayKey) {
             return $response[$responseArrayKey];

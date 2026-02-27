@@ -39,7 +39,7 @@ class Spotify
     }
 
     /**
-     * Get Spotify catalog information about an album’s tracks. Optional parameters can be used to limit the number of tracks returned.
+     * Get Spotify catalog information about an album's tracks. Optional parameters can be used to limit the number of tracks returned.
      */
     public function albumTracks(string $id): PendingRequest
     {
@@ -48,23 +48,6 @@ class Spotify
         $acceptedParams = [
             'limit' => null,
             'offset' => null,
-            'market' => $this->defaultConfig['market'],
-        ];
-
-        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
-    }
-
-    /**
-     * Get Spotify catalog information for multiple albums identified by their Spotify IDs.
-     *
-     * @param  array|string  $ids
-     */
-    public function albums($ids): PendingRequest
-    {
-        $endpoint = '/albums/';
-
-        $acceptedParams = [
-            'ids' => Validator::validateArgument('ids', $ids),
             'market' => $this->defaultConfig['market'],
         ];
 
@@ -82,7 +65,7 @@ class Spotify
     }
 
     /**
-     * Get Spotify catalog information about an artist’s albums. Optional parameters can be specified in the query string to filter and sort the response.
+     * Get Spotify catalog information about an artist's albums. Optional parameters can be specified in the query string to filter and sort the response.
      */
     public function artistAlbums(string $id): PendingRequest
     {
@@ -91,68 +74,6 @@ class Spotify
         $acceptedParams = [
             'include_groups' => null,
             'country' => $this->defaultConfig['country'],
-            'limit' => null,
-            'offset' => null,
-        ];
-
-        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
-    }
-
-    /**
-     * Get Spotify catalog information about an artist’s top tracks by country.
-     */
-    public function artistTopTracks(string $id): PendingRequest
-    {
-        $endpoint = '/artists/'.$id.'/top-tracks/';
-
-        $acceptedParams = [
-            'country' => $this->defaultConfig['country'],
-        ];
-
-        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
-    }
-
-    /**
-     * Get Spotify catalog information for several artists based on their Spotify IDs.
-     *
-     * @param  array|string  $ids
-     */
-    public function artists($ids): PendingRequest
-    {
-        $endpoint = '/artists/';
-
-        $acceptedParams = [
-            'ids' => Validator::validateArgument('ids', $ids),
-        ];
-
-        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
-    }
-
-    /**
-     * Get a single category used to tag items in Spotify (on, for example, the Spotify player’s “Browse” tab).
-     */
-    public function category(string $id): PendingRequest
-    {
-        $endpoint = '/browse/categories/'.$id;
-
-        $acceptedParams = [
-            'country' => $this->defaultConfig['country'],
-            'locale' => $this->defaultConfig['locale'],
-        ];
-
-        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
-    }
-
-    /**
-     * Get a list of categories used to tag items in Spotify (on, for example, the Spotify player’s “Browse” tab).
-     */
-    public function categories(): PendingRequest
-    {
-        $endpoint = '/browse/categories/';
-
-        $acceptedParams = [
-            'country' => $this->defaultConfig['country'],
-            'locale' => $this->defaultConfig['locale'],
             'limit' => null,
             'offset' => null,
         ];
@@ -175,36 +96,54 @@ class Spotify
     }
 
     /**
-     * Get Spotify catalog information for several episodes based on their Spotify IDs.
+     * Check whether one or more items are present in the current user's library.
+     * Requires access token with scope: user-library-read.
      *
-     * @param  array|string  $ids
+     * @param  array|string  $uris  Spotify URIs (comma-separated string or array)
      */
-    public function episodes($ids): PendingRequest
+    public function libraryContains($uris): PendingRequest
     {
-        $endpoint = '/episodes/';
+        $urisString = is_array($uris) ? implode(',', $uris) : $uris;
 
         $acceptedParams = [
-            'ids' => Validator::validateArgument('ids', $ids),
-            'market' => $this->defaultConfig['market'],
+            'uris' => $urisString,
         ];
 
-        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
+        return new PendingRequest('/me/library/contains', $acceptedParams, $this->accessToken);
     }
 
     /**
-     * Get a list of new album releases featured in Spotify (shown, for example, on a Spotify player’s “Browse” tab).
+     * Save one or more items to the current user's library.
+     * Requires access token with scope: user-library-modify.
+     *
+     * @param  array|string  $uris  Spotify URIs (comma-separated string or array)
      */
-    public function newReleases(): PendingRequest
+    public function saveToLibrary($uris): PendingRequest
     {
-        $endpoint = '/browse/new-releases/';
+        $urisArray = is_array($uris) ? $uris : array_map('trim', explode(',', $uris));
 
-        $acceptedParams = [
-            'country' => $this->defaultConfig['country'],
-            'limit' => null,
-            'offset' => null,
-        ];
+        $pending = new PendingRequest('/me/library', [], $this->accessToken);
+        $pending->method = 'PUT';
+        $pending->body = ['uris' => $urisArray];
 
-        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
+        return $pending;
+    }
+
+    /**
+     * Remove one or more items from the current user's library.
+     * Requires access token with scope: user-library-modify.
+     *
+     * @param  array|string  $uris  Spotify URIs (comma-separated string or array)
+     */
+    public function removeFromLibrary($uris): PendingRequest
+    {
+        $urisArray = is_array($uris) ? $uris : array_map('trim', explode(',', $uris));
+
+        $pending = new PendingRequest('/me/library', [], $this->accessToken);
+        $pending->method = 'DELETE';
+        $pending->body = ['uris' => $urisArray];
+
+        return $pending;
     }
 
     /**
@@ -233,11 +172,11 @@ class Spotify
     }
 
     /**
-     * Get full details of the tracks of a playlist owned by a Spotify user.
+     * Get full details of the items of a playlist owned by a Spotify user.
      */
-    public function playlistTracks(string $id): PendingRequest
+    public function playlistItems(string $id): PendingRequest
     {
-        $endpoint = '/playlists/'.$id.'/tracks/';
+        $endpoint = '/playlists/'.$id.'/items/';
 
         $acceptedParams = [
             'fields' => null,
@@ -250,7 +189,75 @@ class Spotify
     }
 
     /**
+     * Add one or more items to a playlist.
+     * Requires access token with scope: playlist-modify-public or playlist-modify-private.
+     *
+     * @param  array|string  $uris  Spotify URIs (comma-separated string or array)
+     */
+    public function addPlaylistItems(string $id, $uris, ?int $position = null): PendingRequest
+    {
+        $urisArray = is_array($uris) ? $uris : array_map('trim', explode(',', $uris));
+
+        $body = ['uris' => $urisArray];
+        if ($position !== null) {
+            $body['position'] = $position;
+        }
+
+        $pending = new PendingRequest('/playlists/'.$id.'/items', [], $this->accessToken);
+        $pending->method = 'POST';
+        $pending->body = $body;
+
+        return $pending;
+    }
+
+    /**
+     * Reorder or replace items in a playlist.
+     * Requires access token with scope: playlist-modify-public or playlist-modify-private.
+     *
+     * @param  array|string  $uris  Spotify URIs (comma-separated string or array)
+     */
+    public function updatePlaylistItems(string $id, $uris, ?int $rangeStart = null, ?int $rangeLength = null, ?int $insertBefore = null): PendingRequest
+    {
+        $urisArray = is_array($uris) ? $uris : array_map('trim', explode(',', $uris));
+
+        $body = ['uris' => $urisArray];
+        if ($rangeStart !== null) {
+            $body['range_start'] = $rangeStart;
+        }
+        if ($rangeLength !== null) {
+            $body['range_length'] = $rangeLength;
+        }
+        if ($insertBefore !== null) {
+            $body['insert_before'] = $insertBefore;
+        }
+
+        $pending = new PendingRequest('/playlists/'.$id.'/items', [], $this->accessToken);
+        $pending->method = 'PUT';
+        $pending->body = $body;
+
+        return $pending;
+    }
+
+    /**
+     * Remove one or more items from a playlist.
+     * Requires access token with scope: playlist-modify-public or playlist-modify-private.
+     *
+     * @param  array|string  $uris  Spotify URIs (comma-separated string or array)
+     */
+    public function removePlaylistItems(string $id, $uris): PendingRequest
+    {
+        $urisArray = is_array($uris) ? $uris : array_map('trim', explode(',', $uris));
+
+        $pending = new PendingRequest('/playlists/'.$id.'/items', [], $this->accessToken);
+        $pending->method = 'DELETE';
+        $pending->body = ['items' => array_map(fn ($uri) => ['uri' => $uri], $urisArray)];
+
+        return $pending;
+    }
+
+    /**
      * Get Spotify Catalog information about artists, albums, tracks or playlists that match a keyword string.
+     * The limit parameter has a maximum of 10 and a default of 5.
      *
      * @param  array|string  $type
      */
@@ -272,6 +279,7 @@ class Spotify
 
     /**
      * Get Spotify Catalog information about albums that match a keyword string.
+     * The limit parameter has a maximum of 10 and a default of 5.
      */
     public function searchAlbums(string $query): PendingRequest
     {
@@ -291,6 +299,7 @@ class Spotify
 
     /**
      * Get Spotify Catalog information about artists that match a keyword string.
+     * The limit parameter has a maximum of 10 and a default of 5.
      */
     public function searchArtists(string $query): PendingRequest
     {
@@ -310,6 +319,7 @@ class Spotify
 
     /**
      * Get Spotify Catalog information about episodes that match a keyword string.
+     * The limit parameter has a maximum of 10 and a default of 5.
      */
     public function searchEpisodes(string $query): PendingRequest
     {
@@ -329,6 +339,7 @@ class Spotify
 
     /**
      * Get Spotify Catalog information about playlists that match a keyword string.
+     * The limit parameter has a maximum of 10 and a default of 5.
      */
     public function searchPlaylists(string $query): PendingRequest
     {
@@ -348,6 +359,7 @@ class Spotify
 
     /**
      * Get Spotify Catalog information about shows that match a keyword string.
+     * The limit parameter has a maximum of 10 and a default of 5.
      */
     public function searchShows(string $query): PendingRequest
     {
@@ -367,6 +379,7 @@ class Spotify
 
     /**
      * Get Spotify Catalog information about tracks that match a keyword string.
+     * The limit parameter has a maximum of 10 and a default of 5.
      */
     public function searchTracks(string $query): PendingRequest
     {
@@ -399,24 +412,7 @@ class Spotify
     }
 
     /**
-     * Get Spotify catalog information for several shows based on their Spotify IDs.
-     *
-     * @param  array|string  $ids
-     */
-    public function shows($ids): PendingRequest
-    {
-        $endpoint = '/shows/';
-
-        $acceptedParams = [
-            'ids' => Validator::validateArgument('ids', $ids),
-            'market' => $this->defaultConfig['market'],
-        ];
-
-        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
-    }
-
-    /**
-     * Get Spotify catalog information about a show’s episodes.
+     * Get Spotify catalog information about a show's episodes.
      */
     public function showEpisodes(string $id): PendingRequest
     {
@@ -432,23 +428,6 @@ class Spotify
     }
 
     /**
-     * Get Spotify catalog information for multiple tracks based on their Spotify IDs.
-     *
-     * @param  array|string  $ids
-     */
-    public function tracks($ids): PendingRequest
-    {
-        $endpoint = '/tracks/';
-
-        $acceptedParams = [
-            'ids' => Validator::validateArgument('ids', $ids),
-            'market' => $this->defaultConfig['market'],
-        ];
-
-        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
-    }
-
-    /**
      * Get Spotify catalog information for a single track identified by its unique Spotify ID.
      */
     public function track(string $id): PendingRequest
@@ -457,31 +436,6 @@ class Spotify
 
         $acceptedParams = [
             'market' => $this->defaultConfig['market'],
-        ];
-
-        return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);
-    }
-
-    /**
-     * Get public profile information about a Spotify user.
-     */
-    public function user(string $id): PendingRequest
-    {
-        $endpoint = '/users/'.$id;
-
-        return new PendingRequest($endpoint, [], $this->accessToken);
-    }
-
-    /**
-     * Get a list of the playlists owned or followed by a Spotify user.
-     */
-    public function userPlaylists(string $id): PendingRequest
-    {
-        $endpoint = '/users/'.$id.'/playlists';
-
-        $acceptedParams = [
-            'limit' => null,
-            'offset' => null,
         ];
 
         return new PendingRequest($endpoint, $acceptedParams, $this->accessToken);

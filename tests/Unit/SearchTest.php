@@ -91,11 +91,11 @@ class SearchTest extends TestCase
     {
         $query = 'UK Garage';
 
-        $playlists = Spotify::searchPlaylists($query)->limit(20)->offset(1)->get();
+        $playlists = Spotify::searchPlaylists($query)->limit(10)->offset(1)->get();
         $playlistName = $playlists['playlists']['items'][0]['name'];
 
         $this->assertStringContainsStringIgnoringCase($query, $playlistName);
-        $this->assertCount(20, $playlists['playlists']['items']);
+        $this->assertCount(10, $playlists['playlists']['items']);
         $this->assertEquals(1, $playlists['playlists']['offset']);
     }
 
@@ -115,11 +115,11 @@ class SearchTest extends TestCase
     {
         $query = 'Tremble';
 
-        $tracks = Spotify::searchTracks($query)->limit(15)->offset(10)->get();
+        $tracks = Spotify::searchTracks($query)->limit(10)->offset(10)->get();
         $trackName = $tracks['tracks']['items'][0]['name'];
 
         $this->assertStringContainsStringIgnoringCase($query, $trackName);
-        $this->assertCount(15, $tracks['tracks']['items']);
+        $this->assertCount(10, $tracks['tracks']['items']);
         $this->assertEquals(10, $tracks['tracks']['offset']);
     }
 
@@ -127,7 +127,7 @@ class SearchTest extends TestCase
     {
         $query = (string) $this->queryParam($url, 'q', 'Mock Query');
         $typeParam = (string) $this->queryParam($url, 'type', '');
-        $limit = (int) $this->queryParam($url, 'limit', 20);
+        $limit = (int) $this->queryParam($url, 'limit', 5);
         $offset = (int) $this->queryParam($url, 'offset', 0);
         $types = array_filter(explode(',', $typeParam));
 

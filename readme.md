@@ -216,7 +216,7 @@ Spotify::searchTracks('Closed on Sunday')->get();
 You may pass optional parameters to your requests using the fluent interface provided by this package. A common use case is to set a `limit` and `offset` to your request.
 
 ```php
-Spotify::searchTracks('Closed on Sunday')->limit(50)->offset(50)->get();
+Spotify::searchTracks('Closed on Sunday')->limit(5)->offset(5)->get();
 ```
 
 ### Parameter Methods API Reference
@@ -235,17 +235,14 @@ Spotify::searchTracks('query')->includeExternal('audio')->get();
 // Filter the response using the provided string.
 Spotify::artistAlbums('artist_id')->includeGroups('album, single, appears_on, compilation')->get();
 
-// Set the number of track objects to be returned.
+// Set the number of objects to be returned (max 10, default 5 for search endpoints).
 Spotify::searchTracks('query')->limit(10)->get();
 
-// Set the index of the first track to be returned.
+// Set the index of the first object to be returned.
 Spotify::searchTracks('query')->offset(10)->get();
 
 // Limit the response to a particular geographical market.
 Spotify::searchAlbums('query')->market('US')->get();
-
-// Limit the response to a particular language.
-Spotify::category('category_id')->locale('en_US')->get();
 ```
 
 ### Resetting Defaults
@@ -270,10 +267,10 @@ Spotify::searchTracks('query')->get('tracks');
 
 ```php
 // Pass a string with comma-separated values
-Spotify::albums('album_id, album_id_2, album_id_3')->get();
+Spotify::libraryContains('spotify:track:id1, spotify:track:id2')->get();
 
 // Or pass an array of values
-Spotify::albums(['album_id', 'album_id_2', 'album_id_3'])->get();
+Spotify::libraryContains(['spotify:track:id1', 'spotify:track:id2'])->get();
 ```
 
 ### Albums
@@ -281,9 +278,6 @@ Spotify::albums(['album_id', 'album_id_2', 'album_id_3'])->get();
 ```php
 // Get an album by ID.
 Spotify::album('album_id')->get();
-
-// Get several albums by IDs. Provide a string or array of IDs.
-Spotify::albums('album_id, album_id_2, album_id_3')->get();
 
 // Get the tracks of an album by ID.
 Spotify::albumTracks('album_id')->get();
@@ -295,27 +289,8 @@ Spotify::albumTracks('album_id')->get();
 // Get an artist by ID.
 Spotify::artist('artist_id')->get();
 
-// Get several artists by IDs. Provide a string or array of IDs.
-Spotify::artists('artist_id, artist_id_2, artist_id_3')->get();
-
 // Get albums of an artist by ID.
 Spotify::artistAlbums('artist_id')->get();
-
-// Get the artist's top tracks by ID.
-Spotify::artistTopTracks('artist_id')->get();
-```
-
-### Browse
-
-```php
-// Get a category by ID.
-Spotify::category('category_id')->get();
-
-// Get a list of categories.
-Spotify::categories()->get();
-
-// Get a list of new releases.
-Spotify::newReleases()->get();
 ```
 
 ### Episodes
@@ -323,9 +298,21 @@ Spotify::newReleases()->get();
 ```php
 // Get an episode by ID.
 Spotify::episode('episode_id')->get();
+```
 
-// Get several episodes by IDs. Provide a string or array of IDs.
-Spotify::episodes('episode_id, episode_id_2, episode_id_3')->get();
+### Library
+
+Library endpoints require a user access token with the appropriate scope. Use `withToken()` to provide the token.
+
+```php
+// Check if one or more items are in the current user's library. Requires scope: user-library-read.
+Spotify::withToken($token)->libraryContains(['spotify:track:id1', 'spotify:track:id2'])->get();
+
+// Save one or more items to the current user's library. Requires scope: user-library-modify.
+Spotify::withToken($token)->saveToLibrary(['spotify:track:id1', 'spotify:track:id2'])->get();
+
+// Remove one or more items from the current user's library. Requires scope: user-library-modify.
+Spotify::withToken($token)->removeFromLibrary(['spotify:track:id1', 'spotify:track:id2'])->get();
 ```
 
 ### Playlists
@@ -334,14 +321,33 @@ Spotify::episodes('episode_id, episode_id_2, episode_id_3')->get();
 // Get a playlist by ID.
 Spotify::playlist('playlist_id')->get();
 
-// Get a playlist's tracks by ID.
-Spotify::playlistTracks('playlist_id')->get();
+// Get a playlist's items by ID.
+Spotify::playlistItems('playlist_id')->get();
 
 // Get a playlist's cover image by ID.
 Spotify::playlistCoverImage('playlist_id')->get();
 ```
 
+### Playlist Item Management
+
+Playlist write endpoints require a user access token with scope `playlist-modify-public` or `playlist-modify-private`.
+
+```php
+// Add one or more items to a playlist (optionally at a specific position).
+Spotify::withToken($token)->addPlaylistItems('playlist_id', ['spotify:track:id1', 'spotify:track:id2'])->get();
+Spotify::withToken($token)->addPlaylistItems('playlist_id', ['spotify:track:id1'], position: 0)->get();
+
+// Reorder or replace items in a playlist.
+Spotify::withToken($token)->updatePlaylistItems('playlist_id', ['spotify:track:id1'])->get();
+Spotify::withToken($token)->updatePlaylistItems('playlist_id', ['spotify:track:id1'], rangeStart: 0, rangeLength: 1, insertBefore: 2)->get();
+
+// Remove one or more items from a playlist.
+Spotify::withToken($token)->removePlaylistItems('playlist_id', ['spotify:track:id1', 'spotify:track:id2'])->get();
+```
+
 ### Search
+
+> **Note:** The `limit` parameter has a maximum of **10** and a default of **5** for all search endpoints.
 
 ```php
 // Search items by query. Provide a string or array to the second parameter.
@@ -372,9 +378,6 @@ Spotify::searchTracks('query')->get();
 // Get a show by ID.
 Spotify::show('show_id')->get();
 
-// Get several shows by IDs. Provide a string or array of IDs.
-Spotify::shows('show_id, show_id_2, show_id_3')->get();
-
 // Get the episodes of a show by ID.
 Spotify::showEpisodes('show_id')->get();
 ```
@@ -384,19 +387,6 @@ Spotify::showEpisodes('show_id')->get();
 ```php
 // Get a track by ID.
 Spotify::track('track_id')->get();
-
-// Get several tracks by IDs. Provide a string or array of IDs.
-Spotify::tracks('track_id, track_id_2, track_id_3')->get();
-```
-
-### User's Profile
-
-```php
-// Get a user's profile
-Spotify::user('user_id')->get();
-
-// Get a list of a user's playlists
-Spotify::userPlaylists('user_id')->get();
 ```
 
 ## Tests

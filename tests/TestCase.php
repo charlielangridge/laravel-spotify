@@ -84,6 +84,34 @@ abstract class TestCase extends Orchestra
             });
     }
 
+    protected function mockSpotifyApiWrite(string $httpMethod, array $responses): void
+    {
+        SpotifyClient::shouldReceive(strtolower($httpMethod))
+            ->andReturnUsing(function (string $url, array $options = []) use ($responses): ResponseInterface {
+                foreach ($responses as $pattern => $response) {
+                    if (! str_contains($url, $pattern)) {
+                        continue;
+                    }
+
+                    if (is_callable($response)) {
+                        $response = $response($url, $options);
+                    }
+
+                    if ($response instanceof Throwable) {
+                        throw $response;
+                    }
+
+                    if ($response instanceof ResponseInterface) {
+                        return $response;
+                    }
+
+                    return $this->spotifyJsonResponse($response);
+                }
+
+                throw new RuntimeException("No mocked Spotify response configured for URL [{$url}].");
+            });
+    }
+
     protected function spotifyJsonResponse(array $body, int $status = 200): Response
     {
         return new Response($status, ['Content-Type' => 'application/json'], json_encode($body, JSON_THROW_ON_ERROR));

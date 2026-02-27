@@ -19,12 +19,12 @@ class PlaylistsTest extends TestCase
                 'height' => null,
                 'width' => null,
             ]],
-            '/playlists/'.$this->playlistId.'/tracks/' => function (string $url): array {
+            '/playlists/'.$this->playlistId.'/items/' => function (string $url): array {
                 $limit = (int) $this->queryParam($url, 'limit', 20);
                 $offset = (int) $this->queryParam($url, 'offset', 0);
 
                 return [
-                    'href' => 'https://api.spotify.com/v1/playlists/'.$this->playlistId.'/tracks',
+                    'href' => 'https://api.spotify.com/v1/playlists/'.$this->playlistId.'/items',
                     'items' => [['track' => ['id' => 'track-1', 'name' => 'Track 1', 'type' => 'track']]],
                     'limit' => $limit,
                     'offset' => $offset,
@@ -53,12 +53,57 @@ class PlaylistsTest extends TestCase
         $this->assertEquals($playlist['id'], $this->playlistId);
     }
 
-    public function test_can_get_playlist_tracks(): void
+    public function test_can_get_playlist_items(): void
     {
-        $playlistTracks = Spotify::playlistTracks($this->playlistId)->limit(50)->offset(10)->get();
+        $playlistItems = Spotify::playlistItems($this->playlistId)->limit(50)->offset(10)->get();
 
-        $this->assertArrayHasKey('items', $playlistTracks);
-        $this->assertEquals(50, $playlistTracks['limit']);
-        $this->assertEquals(10, $playlistTracks['offset']);
+        $this->assertArrayHasKey('items', $playlistItems);
+        $this->assertEquals(50, $playlistItems['limit']);
+        $this->assertEquals(10, $playlistItems['offset']);
+    }
+
+    public function test_can_add_playlist_items(): void
+    {
+        $uris = ['spotify:track:abc123', 'spotify:track:def456'];
+
+        $this->mockSpotifyApiWrite('POST', [
+            '/playlists/'.$this->playlistId.'/items' => ['snapshot_id' => 'mock-snapshot-add'],
+        ]);
+
+        $result = Spotify::withToken('mock-token')
+            ->addPlaylistItems($this->playlistId, $uris)
+            ->get();
+
+        $this->assertEquals('mock-snapshot-add', $result['snapshot_id']);
+    }
+
+    public function test_can_update_playlist_items(): void
+    {
+        $uris = ['spotify:track:abc123'];
+
+        $this->mockSpotifyApiWrite('PUT', [
+            '/playlists/'.$this->playlistId.'/items' => ['snapshot_id' => 'mock-snapshot-update'],
+        ]);
+
+        $result = Spotify::withToken('mock-token')
+            ->updatePlaylistItems($this->playlistId, $uris, 0, 1, 2)
+            ->get();
+
+        $this->assertEquals('mock-snapshot-update', $result['snapshot_id']);
+    }
+
+    public function test_can_remove_playlist_items(): void
+    {
+        $uris = ['spotify:track:abc123'];
+
+        $this->mockSpotifyApiWrite('DELETE', [
+            '/playlists/'.$this->playlistId.'/items' => ['snapshot_id' => 'mock-snapshot-remove'],
+        ]);
+
+        $result = Spotify::withToken('mock-token')
+            ->removePlaylistItems($this->playlistId, $uris)
+            ->get();
+
+        $this->assertEquals('mock-snapshot-remove', $result['snapshot_id']);
     }
 }

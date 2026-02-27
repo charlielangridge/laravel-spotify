@@ -14,6 +14,10 @@ class PendingRequest
 
     public ?string $accessToken;
 
+    public string $method = 'GET';
+
+    public array $body = [];
+
     public function __construct(string $endpoint, array $acceptedParams = [], ?string $accessToken = null)
     {
         $this->endpoint = $endpoint;
