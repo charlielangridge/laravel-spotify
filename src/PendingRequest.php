@@ -18,6 +18,8 @@ class PendingRequest
 
     public array $body = [];
 
+    public ?string $rawBody = null;
+
     public function __construct(string $endpoint, array $acceptedParams = [], ?string $accessToken = null)
     {
         $this->endpoint = $endpoint;
@@ -147,6 +149,62 @@ class PendingRequest
     public function timestamp(string $timestamp): self
     {
         $this->setRequestedParam('timestamp', $timestamp);
+
+        return $this;
+    }
+
+    /**
+     * Set the before cursor/timestamp if provided.
+     *
+     * @return $this
+     *
+     * @throws Exceptions\ValidatorException
+     */
+    public function before(int|string $before): self
+    {
+        $this->setRequestedParam('before', $before);
+
+        return $this;
+    }
+
+    /**
+     * Set the after cursor/timestamp if provided.
+     *
+     * @return $this
+     *
+     * @throws Exceptions\ValidatorException
+     */
+    public function after(int|string $after): self
+    {
+        $this->setRequestedParam('after', $after);
+
+        return $this;
+    }
+
+    /**
+     * Set the time_range if provided.
+     *
+     * @return $this
+     *
+     * @throws Exceptions\ValidatorException
+     */
+    public function timeRange(string $timeRange): self
+    {
+        $this->setRequestedParam('time_range', $timeRange);
+
+        return $this;
+    }
+
+    /**
+     * Set the device_id if provided.
+     *
+     * @return $this
+     *
+     * @throws Exceptions\ValidatorException
+     */
+    public function deviceId(string $deviceId): self
+    {
+        $this->setRequestedParam('device_id', $deviceId);
 
         return $this;
     }

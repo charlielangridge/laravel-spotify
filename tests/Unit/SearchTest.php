@@ -75,16 +75,11 @@ class SearchTest extends TestCase
         $this->assertEquals(20, $artists['artists']['offset']);
     }
 
-    public function test_can_search_for_episodes(): void
+    public function test_search_episodes_throws_removed_endpoint_exception(): void
     {
-        $query = 'Mike Winger';
-
-        $episodes = Spotify::searchEpisodes($query)->limit(10)->offset(20)->get();
-        $episodeName = $episodes['episodes']['items'][0]['name'];
-
-        $this->assertStringContainsStringIgnoringCase($query, $episodeName);
-        $this->assertCount(10, $episodes['episodes']['items']);
-        $this->assertEquals(20, $episodes['episodes']['offset']);
+        $this->expectException(\Aerni\Spotify\Exceptions\ValidatorException::class);
+        $this->expectExceptionMessage('The [searchEpisodes] endpoint is no longer available');
+        Spotify::searchEpisodes('Mike Winger')->get();
     }
 
     public function test_can_search_for_playlists(): void
@@ -99,16 +94,11 @@ class SearchTest extends TestCase
         $this->assertEquals(1, $playlists['playlists']['offset']);
     }
 
-    public function test_can_search_for_shows(): void
+    public function test_search_shows_throws_removed_endpoint_exception(): void
     {
-        $query = 'Worship';
-
-        $shows = Spotify::searchShows($query)->limit(10)->offset(20)->get();
-        $showName = $shows['shows']['items'][0]['name'];
-
-        $this->assertStringContainsStringIgnoringCase($query, $showName);
-        $this->assertCount(10, $shows['shows']['items']);
-        $this->assertEquals(20, $shows['shows']['offset']);
+        $this->expectException(\Aerni\Spotify\Exceptions\ValidatorException::class);
+        $this->expectExceptionMessage('The [searchShows] endpoint is no longer available');
+        Spotify::searchShows('Worship')->get();
     }
 
     public function test_can_search_for_tracks(): void

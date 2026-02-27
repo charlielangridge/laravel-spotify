@@ -26,9 +26,9 @@ class CreateRequestAction
             : resolve(SpotifyRequest::class);
 
         $response = match ($pendingRequest->method) {
-            'POST'   => $spotifyRequest->post($endpoint, $pendingRequest->body),
-            'PUT'    => $spotifyRequest->put($endpoint, $pendingRequest->body),
-            'DELETE' => $spotifyRequest->delete($endpoint, $pendingRequest->body),
+            'POST'   => $spotifyRequest->post($endpoint, $pendingRequest->body, $pendingRequest->rawBody),
+            'PUT'    => $spotifyRequest->put($endpoint, $pendingRequest->body, $pendingRequest->rawBody),
+            'DELETE' => $spotifyRequest->delete($endpoint, $pendingRequest->body, $pendingRequest->rawBody),
             default  => $spotifyRequest->get($endpoint, $finalParams),
         };
 

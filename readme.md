@@ -32,7 +32,7 @@
 ## Introduction
 Spotify for Laravel makes working with the Spotify Web API a breeze. It provides straight forward methods for each endpoint and a fluent interface for optional parameters.
 
-The package supports all Spotify Web API endpoints accessible with the [Client Credentials Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#client-credentials-flow) (public data) and the [Authorization Code Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow) (user-specific data such as saved tracks, private playlists, and user profile).
+The package supports Spotify Web API endpoints that are currently available in the official reference for the [Client Credentials Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#client-credentials-flow) (public data) and the [Authorization Code Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow) (user-specific data such as saved tracks, private playlists, and user profile).
 
 ## Installation
 Install the package using Composer. The package will automatically register itself.
@@ -263,131 +263,157 @@ Spotify::searchTracks('query')->get('tracks');
 
 ## Spotify API Reference
 
-**Note:** Any parameter that accepts multiple values can either receive a string with comma-separated values or an array of values.
+This section reflects Spotify's current Web API availability, including the February 2026 changes:
+https://developer.spotify.com/documentation/web-api/references/changes/february-2026
 
-```php
-// Pass a string with comma-separated values
-Spotify::libraryContains('spotify:track:id1, spotify:track:id2')->get();
-
-// Or pass an array of values
-Spotify::libraryContains(['spotify:track:id1', 'spotify:track:id2'])->get();
-```
+**Note:** Any parameter that accepts multiple values can receive either a comma-separated string or an array.
 
 ### Albums
 
 ```php
-// Get an album by ID.
 Spotify::album('album_id')->get();
-
-// Get the tracks of an album by ID.
+Spotify::albums(['id1', 'id2'])->get();
 Spotify::albumTracks('album_id')->get();
+Spotify::withToken($token)->savedAlbums()->limit(20)->offset(0)->get();
+Spotify::withToken($token)->saveAlbums(['id1', 'id2'])->get();
+Spotify::withToken($token)->removeAlbums(['id1', 'id2'])->get();
+Spotify::withToken($token)->containsAlbums(['id1', 'id2'])->get();
+Spotify::newReleases()->country('US')->limit(20)->get();
 ```
 
 ### Artists
 
 ```php
-// Get an artist by ID.
 Spotify::artist('artist_id')->get();
-
-// Get albums of an artist by ID.
+Spotify::artists(['id1', 'id2'])->get();
 Spotify::artistAlbums('artist_id')->get();
+Spotify::artistTopTracks('artist_id')->market('US')->get();
+Spotify::artistRelatedArtists('artist_id')->get();
 ```
 
-### Episodes
+### Audiobooks
 
 ```php
-// Get an episode by ID.
+Spotify::audiobook('audiobook_id')->get();
+Spotify::audiobooks(['id1', 'id2'])->get();
+Spotify::audiobookChapters('audiobook_id')->limit(20)->offset(0)->get();
+Spotify::withToken($token)->savedAudiobooks()->limit(20)->offset(0)->get();
+Spotify::withToken($token)->saveAudiobooks(['id1', 'id2'])->get();
+Spotify::withToken($token)->removeAudiobooks(['id1', 'id2'])->get();
+Spotify::withToken($token)->containsAudiobooks(['id1', 'id2'])->get();
+```
+
+### Browse
+
+```php
+Spotify::categories()->country('US')->locale('en_US')->limit(20)->get();
+Spotify::category('category_id')->country('US')->locale('en_US')->get();
+Spotify::categoryPlaylists('category_id')->country('US')->limit(20)->get();
+Spotify::featuredPlaylists()->country('US')->locale('en_US')->timestamp(now()->toIso8601String())->get();
+```
+
+### Chapters And Episodes
+
+```php
+Spotify::chapter('chapter_id')->get();
+Spotify::chapters(['id1', 'id2'])->get();
 Spotify::episode('episode_id')->get();
 ```
 
-### Library
-
-Library endpoints require a user access token with the appropriate scope. Use `withToken()` to provide the token.
+### Markets
 
 ```php
-// Check if one or more items are in the current user's library. Requires scope: user-library-read.
-Spotify::withToken($token)->libraryContains(['spotify:track:id1', 'spotify:track:id2'])->get();
+Spotify::availableMarkets()->get();
+```
 
-// Save one or more items to the current user's library. Requires scope: user-library-modify.
-Spotify::withToken($token)->saveToLibrary(['spotify:track:id1', 'spotify:track:id2'])->get();
+### Player
 
-// Remove one or more items from the current user's library. Requires scope: user-library-modify.
-Spotify::withToken($token)->removeFromLibrary(['spotify:track:id1', 'spotify:track:id2'])->get();
+```php
+Spotify::withToken($token)->playbackState()->get();
+Spotify::withToken($token)->transferPlayback(['device_id'], play: true)->get();
+Spotify::withToken($token)->availableDevices()->get();
+Spotify::withToken($token)->currentlyPlayingTrack()->get();
+Spotify::withToken($token)->startOrResumePlayback(deviceId: 'device_id', contextUri: 'spotify:album:...')->get();
+Spotify::withToken($token)->pausePlayback(deviceId: 'device_id')->get();
+Spotify::withToken($token)->skipToNext(deviceId: 'device_id')->get();
+Spotify::withToken($token)->skipToPrevious(deviceId: 'device_id')->get();
+Spotify::withToken($token)->seekToPosition(30000, deviceId: 'device_id')->get();
+Spotify::withToken($token)->setRepeatMode('track', deviceId: 'device_id')->get();
+Spotify::withToken($token)->setPlaybackVolume(75, deviceId: 'device_id')->get();
+Spotify::withToken($token)->togglePlaybackShuffle(true, deviceId: 'device_id')->get();
 ```
 
 ### Playlists
 
 ```php
-// Get a playlist by ID.
 Spotify::playlist('playlist_id')->get();
-
-// Get a playlist's items by ID.
 Spotify::playlistItems('playlist_id')->get();
-
-// Get a playlist's cover image by ID.
 Spotify::playlistCoverImage('playlist_id')->get();
-```
-
-### Playlist Item Management
-
-Playlist write endpoints require a user access token with scope `playlist-modify-public` or `playlist-modify-private`.
-
-```php
-// Add one or more items to a playlist (optionally at a specific position).
-Spotify::withToken($token)->addPlaylistItems('playlist_id', ['spotify:track:id1', 'spotify:track:id2'])->get();
-Spotify::withToken($token)->addPlaylistItems('playlist_id', ['spotify:track:id1'], position: 0)->get();
-
-// Reorder or replace items in a playlist.
+Spotify::withToken($token)->changePlaylistDetails('playlist_id', name: 'New name', description: 'Updated')->get();
+Spotify::withToken($token)->currentUserPlaylists()->limit(20)->offset(0)->get();
+Spotify::userPlaylists('user_id')->limit(20)->offset(0)->get();
+Spotify::withToken($token)->createPlaylist('user_id', 'My Playlist', public: false)->get();
+Spotify::withToken($token)->addPlaylistItems('playlist_id', ['spotify:track:id1'])->get();
 Spotify::withToken($token)->updatePlaylistItems('playlist_id', ['spotify:track:id1'])->get();
-Spotify::withToken($token)->updatePlaylistItems('playlist_id', ['spotify:track:id1'], rangeStart: 0, rangeLength: 1, insertBefore: 2)->get();
-
-// Remove one or more items from a playlist.
-Spotify::withToken($token)->removePlaylistItems('playlist_id', ['spotify:track:id1', 'spotify:track:id2'])->get();
+Spotify::withToken($token)->removePlaylistItems('playlist_id', ['spotify:track:id1'])->get();
+Spotify::withToken($token)->addCustomPlaylistCoverImage('playlist_id', $base64Jpeg)->get();
 ```
 
 ### Search
 
-> **Note:** The `limit` parameter has a maximum of **10** and a default of **5** for all search endpoints.
-
 ```php
-// Search items by query. Provide a string or array to the second parameter.
-Spotify::searchItems('query', 'album, artist, playlist, track')->get();
-
-// Search albums by query.
+Spotify::searchItems('query', 'album,artist,audiobook,playlist,track')->get();
 Spotify::searchAlbums('query')->get();
-
-// Search artists by query.
 Spotify::searchArtists('query')->get();
-
-// Search episodes by query.
-Spotify::searchEpisodes('query')->get();
-
-// Search playlists by query.
+Spotify::searchAudiobooks('query')->get();
 Spotify::searchPlaylists('query')->get();
-
-// Search shows by query.
-Spotify::searchShows('query')->get();
-
-// Search tracks by query.
 Spotify::searchTracks('query')->get();
 ```
 
 ### Shows
 
 ```php
-// Get a show by ID.
 Spotify::show('show_id')->get();
-
-// Get the episodes of a show by ID.
 Spotify::showEpisodes('show_id')->get();
 ```
 
 ### Tracks
 
 ```php
-// Get a track by ID.
 Spotify::track('track_id')->get();
+Spotify::tracks(['id1', 'id2'])->get();
+Spotify::withToken($token)->savedTracks()->limit(20)->offset(0)->get();
+Spotify::withToken($token)->saveTracks(['id1', 'id2'])->get();
+Spotify::withToken($token)->removeTracks(['id1', 'id2'])->get();
+Spotify::withToken($token)->containsTracks(['id1', 'id2'])->get();
+Spotify::trackAudioFeatures('track_id')->get();
+Spotify::tracksAudioFeatures(['id1', 'id2'])->get();
+Spotify::trackAudioAnalysis('track_id')->get();
 ```
+
+### Users And Following
+
+```php
+Spotify::withToken($token)->currentUserProfile()->get();
+Spotify::userProfile('user_id')->get();
+Spotify::withToken($token)->followArtistsOrUsers(['id1'], 'artist')->get();
+Spotify::withToken($token)->unfollowArtistsOrUsers(['id1'], 'artist')->get();
+Spotify::withToken($token)->currentUserFollowsArtistsOrUsers(['id1'], 'artist')->get();
+Spotify::withToken($token)->followedArtists()->limit(20)->after('artist_id')->get();
+```
+
+### Removed Endpoints (February 2026)
+
+Calling any removed endpoint method now throws a `ValidatorException` with a migration message and changelog URL.
+
+Removed methods include:
+`libraryContains`, `saveToLibrary`, `removeFromLibrary`, `recommendations`, `availableGenreSeeds`,
+`episodes`, `savedEpisodes`, `saveEpisodes`, `removeEpisodes`, `containsEpisodes`,
+`recentlyPlayedTracks`, `queue`, `addItemToPlaybackQueue`,
+`followPlaylist`, `unfollowPlaylist`, `currentUserFollowsPlaylist`,
+`searchEpisodes`, `searchShows`,
+`shows`, `savedShows`, `saveShows`, `removeShows`, `containsShows`,
+`currentUserTopItems`.
 
 ## Tests
 Run the tests like this:

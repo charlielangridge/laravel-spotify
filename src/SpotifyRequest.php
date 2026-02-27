@@ -50,16 +50,24 @@ class SpotifyRequest
      *
      * @throws SpotifyApiException
      */
-    public function post(string $endpoint, array $body = []): array
+    public function post(string $endpoint, array $body = [], ?string $rawBody = null): array
     {
         try {
-            $response = SpotifyClient::post($this->apiUrl.$endpoint, [
+            $requestOptions = [
                 'headers' => [
                     'Content-Type' => 'application/json',
                     'Authorization' => 'Bearer '.$this->accessToken,
                 ],
                 'json' => $body,
-            ]);
+            ];
+
+            if ($rawBody !== null) {
+                $requestOptions['headers']['Content-Type'] = 'image/jpeg';
+                $requestOptions['body'] = $rawBody;
+                unset($requestOptions['json']);
+            }
+
+            $response = SpotifyClient::post($this->apiUrl.$endpoint, $requestOptions);
         } catch (RequestException $e) {
             $errorResponse = $e->getResponse();
             $status = $errorResponse->getStatusCode();
@@ -76,16 +84,24 @@ class SpotifyRequest
      *
      * @throws SpotifyApiException
      */
-    public function put(string $endpoint, array $body = []): array
+    public function put(string $endpoint, array $body = [], ?string $rawBody = null): array
     {
         try {
-            $response = SpotifyClient::put($this->apiUrl.$endpoint, [
+            $requestOptions = [
                 'headers' => [
                     'Content-Type' => 'application/json',
                     'Authorization' => 'Bearer '.$this->accessToken,
                 ],
                 'json' => $body,
-            ]);
+            ];
+
+            if ($rawBody !== null) {
+                $requestOptions['headers']['Content-Type'] = 'image/jpeg';
+                $requestOptions['body'] = $rawBody;
+                unset($requestOptions['json']);
+            }
+
+            $response = SpotifyClient::put($this->apiUrl.$endpoint, $requestOptions);
         } catch (RequestException $e) {
             $errorResponse = $e->getResponse();
             $status = $errorResponse->getStatusCode();
@@ -102,16 +118,24 @@ class SpotifyRequest
      *
      * @throws SpotifyApiException
      */
-    public function delete(string $endpoint, array $body = []): array
+    public function delete(string $endpoint, array $body = [], ?string $rawBody = null): array
     {
         try {
-            $response = SpotifyClient::delete($this->apiUrl.$endpoint, [
+            $requestOptions = [
                 'headers' => [
                     'Content-Type' => 'application/json',
                     'Authorization' => 'Bearer '.$this->accessToken,
                 ],
                 'json' => $body,
-            ]);
+            ];
+
+            if ($rawBody !== null) {
+                $requestOptions['headers']['Content-Type'] = 'image/jpeg';
+                $requestOptions['body'] = $rawBody;
+                unset($requestOptions['json']);
+            }
+
+            $response = SpotifyClient::delete($this->apiUrl.$endpoint, $requestOptions);
         } catch (RequestException $e) {
             $errorResponse = $e->getResponse();
             $status = $errorResponse->getStatusCode();
